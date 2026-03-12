@@ -1,0 +1,45 @@
+services:
+  server:
+    build: .
+    container_name: gitea
+    environment:
+      - USER_UID=${USER_UID:-1000}
+      - USER_GID=${USER_GID:-1000}
+      - GITEA__database__DB_TYPE=${GITEA__database__DB_TYPE:-sqlite3}
+      - GITEA__server__DOMAIN=${DOMAIN:-notebook-server}
+      - GITEA__server__SSH_DOMAIN=${SSH_DOMAIN:-notebook-server}
+      - GITEA__server__HTTP_PORT=${HTTP_PORT:-3000}
+      - GITEA__actions__ENABLED=${GITEA__actions__ENABLED:-true}
+    restart: always
+    networks:
+      - gitea_network
+    volumes:
+      - ./gitea:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${HTTP_PORT:-3000}:3000"
+      - "${SSH_PORT:-2222}:22"
+
+  runner:
+    image: gitea/act_runner:nightly
+    container_name: gitea_runner
+    restart: always
+    environment:
+      # O runner precisa acessar a instância do Gitea na mesma rede Docker
+      GITEA_INSTANCE_URL: "http://server:3000"
+      GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_RUNNER_REGISTRATION_TOKEN:-cole_seu_token_aqui_depois}"
+      GITEA_RUNNER_NAME: "local-runner"
+      GITEA_RUNNER_LABELS: "ubuntu-latest:docker://node:20-bullseye,ubuntu-22.04:docker://node:20-bullseye"
+    networks:
+      - gitea_network
+    volumes:
+      - ./runner-data:/data
+      # Montar o socket do docker para conseguir rodar containers (CI) de dentro do runner
+      - /var/run/docker.sock:/var/run/docker.sock 
+    depends_on:
+      - server
+
+networks:
+  gitea_network:
+    external: false
