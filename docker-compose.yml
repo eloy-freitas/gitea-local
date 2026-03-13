@@ -31,10 +31,12 @@ services:
       GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_RUNNER_REGISTRATION_TOKEN:-cole_seu_token_aqui_depois}"
       GITEA_RUNNER_NAME: "local-runner"
       GITEA_RUNNER_LABELS: "ubuntu-latest:docker://node:20-bullseye,ubuntu-22.04:docker://node:20-bullseye"
+      CONFIG_FILE: /config.yaml
     networks:
       - gitea_network
     volumes:
       - ./runner-data:/data
+      - ./runner-config.yaml:/config.yaml:ro
       # Montar o socket do docker para conseguir rodar containers (CI) de dentro do runner
       - /var/run/docker.sock:/var/run/docker.sock 
     depends_on:
@@ -42,4 +44,4 @@ services:
 
 networks:
   gitea_network:
-    external: false
+    driver: bridge
