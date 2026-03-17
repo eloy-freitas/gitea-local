@@ -9,6 +9,7 @@ services:
       - GITEA__server__DOMAIN=${DOMAIN:-notebook-server}
       - GITEA__server__SSH_DOMAIN=${SSH_DOMAIN:-notebook-server}
       - GITEA__server__HTTP_PORT=${HTTP_PORT:-3000}
+      - GITEA__server__ROOT_URL=http://${DOMAIN:-notebook-server}:${HTTP_PORT:-3000}/
       - GITEA__actions__ENABLED=${GITEA__actions__ENABLED:-true}
     restart: always
     networks:
@@ -27,7 +28,7 @@ services:
     restart: always
     environment:
       # O runner precisa acessar a instância do Gitea na mesma rede Docker
-      GITEA_INSTANCE_URL: "http://server:3000"
+      GITEA_INSTANCE_URL: "http://notebook-server:3000"
       GITEA_RUNNER_REGISTRATION_TOKEN: "${GITEA_RUNNER_REGISTRATION_TOKEN:-cole_seu_token_aqui_depois}"
       GITEA_RUNNER_NAME: "local-runner"
       GITEA_RUNNER_LABELS: "ubuntu-latest:docker://node:20-bullseye,ubuntu-22.04:docker://node:20-bullseye"
@@ -41,6 +42,17 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock 
     depends_on:
       - server
+
+  registry:
+    image: registry:2
+    container_name: docker_registry
+    restart: always
+    ports:
+      - "5000:5000"
+    networks:
+      - gitea_network
+    volumes:
+      - ./registry-data:/var/lib/registry
 
 networks:
   gitea_network:
