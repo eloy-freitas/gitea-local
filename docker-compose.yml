@@ -1,7 +1,8 @@
 services:
   server:
-    build: .
-    container_name: gitea
+    build:
+      context: .
+      dockerfile: Dockerfile.server
     environment:
       - USER_UID=${USER_UID:-1000}
       - USER_GID=${USER_GID:-1000}
@@ -23,7 +24,9 @@ services:
       - "${SSH_PORT:-2222}:22"
 
   runner:
-    image: gitea/act_runner:nightly
+    build:
+      context: .
+      dockerfile: Dockerfile.runner
     container_name: gitea_runner
     restart: always
     environment:
@@ -37,7 +40,6 @@ services:
       - gitea_network
     volumes:
       - ${VOLUME_ROOT}/gitea_runner_data:/data
-      - ./runner-config.yaml:/config.yaml:ro
       # Montar o socket do docker para conseguir rodar containers (CI) de dentro do runner
       - /var/run/docker.sock:/var/run/docker.sock 
     depends_on:

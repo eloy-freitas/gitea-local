@@ -1,0 +1,9 @@
+# Use the official nightly image as base
+FROM gitea/act_runner:nightly
+
+# Copy the configuration file into the image
+COPY runner-config.yaml /config.yaml
+
+# The entrypoint/command from the base image usually expects 
+# CONFIG_FILE environment variable or flags. 
+# In docker-compose.yml we already have CONFIG_FILE: /config.yaml
