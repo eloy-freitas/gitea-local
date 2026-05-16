@@ -14,7 +14,9 @@ services:
       - GITEA__actions__ENABLED=${GITEA__actions__ENABLED:-true}
     restart: always
     networks:
-      - gitea_network
+      gitea_network:
+        aliases:
+          - ${DOMAIN}
     volumes:
       - ${VOLUME_ROOT}/gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
