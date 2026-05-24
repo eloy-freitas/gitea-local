@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.server
+    container_name: gitea
     environment:
       - USER_UID=${USER_UID:-1000}
       - USER_GID=${USER_GID:-1000}
@@ -57,6 +58,30 @@ services:
       - gitea_network
     volumes:
       - ${VOLUME_ROOT}/registry_data:/var/lib/registry
+
+  runner-setup:
+    image: docker:cli
+    container_name: gitea_runner_setup
+    depends_on:
+      - server
+      - runner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: >
+      /bin/sh -c "
+        echo 'Aguardando o Gitea iniciar...';
+        sleep 10;
+        TOKEN=\$$(docker exec gitea su git -c 'gitea --config /data/gitea/conf/app.ini actions generate-runner-token');
+        if [ -n \"\$$TOKEN\" ]; then
+          echo 'Registrando runner...';
+          docker exec gitea_runner act_runner register --instance http://notebook-server:3000 --token \"\$$TOKEN\" --no-interactive;
+          echo 'Iniciando o daemon do runner...';
+          docker exec -d gitea_runner act_runner daemon;
+          echo 'Runner registrado com sucesso.';
+        else
+          echo 'Falha ao gerar token do runner.';
+        fi
+      "
 
 networks:
   gitea_network:
