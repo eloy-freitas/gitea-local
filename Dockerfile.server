@@ -1,5 +1,6 @@
 # Usa a imagem oficial otimizada em Alpine do Gitea
-FROM gitea/gitea:latest
+FROM gitea/gitea:1.26.2
+
 
 # Se precisar instalar pacotes extras para o host do container futuramente, 
 # pode adicionar os comandos abaixo:

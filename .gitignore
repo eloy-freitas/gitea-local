@@ -1,2 +1,4 @@
 runner-data/*
 gitea/*
+backup-gitea/*
+volume-gitea*
